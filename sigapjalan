@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SIGAP JALAN 2026</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root{--nv:#14306b;--bl:#1f5fd1;--bg:#eef2f8;--cd:#fff;--tx:#1b2433;--mu:#6b7686;--bd:#dbe2ee;--ok:#12975a;--wr:#e0a100;--er:#d93a3a}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1624;--cd:#18213a;--tx:#e8edf7;--mu:#98a3b8;--bd:#2a3555}}
+*{box-sizing:border-box}body{margin:0;font:14px system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--tx);display:flex;min-height:100vh}
+#sb{width:230px;background:var(--nv);color:#fff;padding:14px 10px;flex:none;transition:.2s}#sb.min{width:0;padding:0;overflow:hidden}
+#sb h1{font-size:18px;margin:4px 8px 0}#sb small{display:block;margin:0 8px 14px;opacity:.7;font-size:11px}
+#sb a{display:block;padding:10px 12px;border-radius:8px;color:#cfe0ff;text-decoration:none;cursor:pointer;margin:2px 0}#sb a.on,#sb a:hover{background:rgba(255,255,255,.15);color:#fff}
+#mn{flex:1;min-width:0}header{background:var(--nv);color:#fff;padding:10px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:500}
+header b{font-size:16px}header .sp{flex:1}header button{background:rgba(255,255,255,.15);color:#fff;border:0;border-radius:6px;padding:6px 10px;cursor:pointer}
+#sync{font-size:12px;opacity:.85}main{padding:16px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:14px}
+.card{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:14px;overflow-x:auto}.grid .card{margin:0}
+.k{color:var(--mu);font-size:12px}.v{font-size:20px;font-weight:700;margin-top:4px}.sub{font-size:11px;color:var(--mu)}
+h2{margin:0 0 10px;font-size:15px}.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+select,input,textarea{padding:7px;border:1px solid var(--bd);border-radius:6px;background:var(--cd);color:var(--tx);font:inherit;max-width:100%}
+.btn{background:var(--bl);color:#fff;border:0;border-radius:6px;padding:8px 12px;cursor:pointer}.btn.g{background:transparent;color:var(--bl);border:1px solid var(--bl)}.btn.s{padding:3px 8px;font-size:12px}
+table{border-collapse:collapse;width:100%;min-width:640px}th{background:var(--bl);color:#fff;text-align:left;padding:7px;font-size:12px}td{padding:7px;border-bottom:1px solid var(--bd);vertical-align:top}
+.b{padding:2px 8px;border-radius:10px;font-size:11px;color:#fff;white-space:nowrap}.On{background:var(--ok)}.Pe{background:var(--wr)}.Te{background:var(--er)}.Ot{background:#7a8599}
+.two{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:1000;padding:10px}
+#modal .box{background:var(--cd);border-radius:12px;padding:16px;width:560px;max-width:100%;max-height:92vh;overflow:auto}
+.f{display:flex;flex-direction:column;margin-bottom:8px}.f label{font-size:12px;color:var(--mu);margin-bottom:3px}
+#toast{position:fixed;right:14px;bottom:14px;z-index:2000}#toast div{background:#222;color:#fff;padding:10px 14px;border-radius:8px;margin-top:6px}#toast .e{background:var(--er)}
+.demo{background:#fff3cd;color:#664d03;padding:6px 12px;border-radius:6px;margin-bottom:12px;font-size:12px}
+.bar{height:8px;background:var(--bd);border-radius:4px;min-width:70px}.bar i{display:block;height:100%;background:var(--bl);border-radius:4px}
+#map{height:480px;border-radius:8px}svg text{fill:var(--mu);font-size:10px}
+@media(max-width:760px){#sb{position:fixed;inset:0 auto 0 0;z-index:900;transform:translateX(-100%)}#sb.open{transform:none}#sb.min{width:230px;padding:14px 10px}}
+</style></head><body>
+<nav id="sb"><h1>SIGAP JALAN</h1><small>Sistem Pengendalian Rehabilitasi Jalan · DPUPR Kab. Karanganyar</small><div id="nav"></div></nav>
+<div id="mn"><header><button onclick="tg()">☰</button><b id="ttl"></b><span class="sp"></span><span>TA <select id="ta" onchange="F.tahun=this.value;go()"></select></span><span id="sync"></span><button onclick="load()">⟳</button><button onclick="akun()">👤 Akun</button></header>
+<main id="main"></main></div>
+<div id="modal"><div class="box" id="mbox"></div></div><div id="toast"></div>
+<script>
+/* ===== KONFIGURASI ===== */
+const CFG={API_URL:'https://script.google.com/macros/s/AKfycbzCDy-idiu3alGYFTigf_5jIV2Qd4z2FqsYo9JviIxypADUZWkFeVlhbysPMAl3w-H8LQ/exec',            // tempel URL Web App Apps Script (…/exec). Kosong = MODE DEMO
+ POLL_MS:45000, WARN:2, LATE:5,   // status: deviasi < -WARN = Perlu Perhatian, < -LATE = Terlambat (poin %)
+ STALE_DAYS:10, LOW_PAY:50};      // peringatan: monitoring tidak diperbarui, realisasi keuangan rendah (%)
+const PAGES=['Dashboard','Proyek','Monitoring Mingguan','Time Schedule','Keuangan','Peta Proyek'];
+const KEC=['Colomadu','Gondangrejo','Jaten','Jatipuro','Jatiyoso','Jenawi','Jumantono','Jumapolo','Karanganyar','Karangpandan','Kebakkramat','Matesih','Mojogedang','Ngargoyoso','Tasikmadu','Tawangmangu','Kerjo'];
+const JENIS={'Aspal Jalan':'#12975a','Beton Jalan':'#e0a100','Jembatan':'#d93a3a','Drainase':'#1f5fd1'};
+const SUMBER=['APBD','DAK','DBHCHT','Lainnya'];
+let DB={Proyek:[],Monitoring_Mingguan:[],Time_Schedule:[],Keuangan:[],Geometri_Peta:[]},OFF=!CFG.API_URL,page=0,F={tahun:'',kec:'',jenis:'',sumber:'',status:'',q:'',curve:''},lastSync=null,map=null;
+/* ===== UTIL ===== */
+const $=s=>document.querySelector(s),tm=()=>new Date().toISOString(),N=x=>(x===''||x==null||isNaN(+x))?null:+x;
+const rp=n=>n==null?'–':'Rp'+Math.round(n).toLocaleString('id-ID'),pc=v=>v==null?'–':v.toFixed(1)+'%';
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const uid=p=>p+'-'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+let SES=null,ROLE='',USER='';try{SES=localStorage.getItem('sj_ses')}catch(e){}
+function toast(m,e){const d=document.createElement('div');d.textContent=m;if(e)d.className='e';$('#toast').append(d);setTimeout(()=>d.remove(),4500)}
+function tg(){const s=$('#sb');innerWidth<761?s.classList.toggle('open'):s.classList.toggle('min')}
+/* ===== API & AKUN ===== */
+async function post(b){if(OFF)return{ok:true};try{return await(await fetch(CFG.API_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({...b,token:SES})})).json()}catch(e){return{ok:false,error:'Jaringan: '+e.message}}}
+function loginUI(m){$('#mbox').innerHTML=`<h2>Masuk SIGAP JALAN</h2>${m?`<div class="sub" style="color:var(--er);margin-bottom:8px">${esc(m)}</div>`:''}<div class="f"><label>Username</label><input id="lu"></div><div class="f"><label>Password</label><input id="lp" type="password" onkeydown="if(event.key==='Enter')doLogin()"></div><button class="btn" onclick="doLogin()">Masuk</button>`;$('#modal').style.display='flex'}
+async function doLogin(){const r=await post({action:'login',username:$('#lu').value.trim(),password:$('#lp').value});if(!r.ok)return loginUI(r.error);SES=r.session;try{localStorage.setItem('sj_ses',SES)}catch(e){}closeM();load()}
+function logout(){SES=null;ROLE='';try{localStorage.removeItem('sj_ses')}catch(e){}loginUI()}
+function akun(){$('#mbox').innerHTML=`<h2>${esc(USER)} <span class="sub">(${ROLE})</span></h2><div class="row">${ROLE==='admin'?'<button class="btn" onclick="formUser()">+ Tambah/Ubah Pengguna</button>':''}<button class="btn g" onclick="logout()">Keluar</button><button class="btn g" onclick="closeM()">Tutup</button></div>`;$('#modal').style.display='flex'}
+function formUser(){form('Pengguna (admin)',[{n:'username',l:'Username',r:1},{n:'nama',l:'Nama lengkap',r:1},{n:'role',l:'Peran',t:'select',o:['admin','editor','pengawas','viewer']},{n:'password',l:'Password (min 8; kosongkan bila tidak diubah)',t:'password'},{n:'aktif',l:'Aktif (1) / Nonaktif (0)',t:'select',o:['1','0']}],async v=>{if(v.password&&v.password.length<8)return{error:'Password minimal 8 karakter'};return post({action:'setUser',user:v})})}
+async function load(){
+ if(OFF){ROLE='admin';USER='Lokal';lastSync=new Date();return go()}
+ if(!SES)return loginUI();
+ try{const r=await(await fetch(CFG.API_URL+'?action=all&token='+encodeURIComponent(SES)+'&_='+Date.now())).json();
+  if(r.auth===false){SES=null;return loginUI('Sesi berakhir, silakan masuk lagi')}
+  if(!r.ok)throw new Error(r.error);DB=r.data;ROLE=r.role;USER=r.nama;lastSync=new Date();go()}catch(e){toast('Sinkronisasi gagal: '+e.message,1);$('#sync').textContent='⚠ gagal sinkron'}}
+async function save(sheet,row,ver){
+ row.updated=tm();
+ if(OFF){const a=DB[sheet],i=a.findIndex(x=>x.id===row.id);i>=0?Object.assign(a[i],row):a.push(row);return{ok:true}}
+ const r=await post({action:'upsert',sheet,row,ver});if(r.auth===false){SES=null;loginUI('Sesi berakhir')}if(r.ok)await load();return r}
+const b64=f=>new Promise(r=>{const x=new FileReader();x.onload=()=>r(x.result.split(',')[1]);x.readAsDataURL(f)});
+const shrink=f=>new Promise((res,rej)=>{const im=new Image();im.onerror=()=>rej(new Error('File bukan gambar'));im.onload=()=>{const s=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.8).split(',')[1])};im.src=URL.createObjectURL(f)});
+async function upFoto(f){if(!/^image\//.test(f.type))return{ok:false,error:'Hanya file gambar'};if(OFF)return{ok:true,url:URL.createObjectURL(f)};
+ try{return await post({action:'upload',name:f.name.replace(/\.\w+$/,'')+'.jpg',mime:'image/jpeg',data:await shrink(f)})}catch(e){return{ok:false,error:e.message}}}
+async function hapus(id){if(!confirm('HAPUS PERMANEN proyek beserta seluruh data terkait? Tidak dapat dibatalkan.'))return;if(prompt('Ketik HAPUS untuk konfirmasi')!=='HAPUS')return;
+ if(OFF){Object.keys(DB).forEach(k=>DB[k]=DB[k].filter(x=>k==='Proyek'?x.id!==id:x.projectId!==id));return go()}
+ const r=await post({action:'delete',sheet:'Proyek',id});r.ok?(toast('Dihapus'),load()):toast(r.error,1)}
+/* ===== PERHITUNGAN (satu sumber untuk kartu, tabel, grafik) ===== */
+const byP=(sh,id)=>DB[sh].filter(x=>x.projectId===id);
+function calc(p){
+ const sch=byP('Time_Schedule',p.id).sort((a,b)=>a.minggu-b.minggu),mon=byP('Monitoring_Mingguan',p.id).sort((a,b)=>a.minggu-b.minggu);
+ let c=0;const plan={};sch.forEach(s=>{c+=+s.bobot||0;plan[s.minggu]=c});
+ c=0;const real={};mon.forEach(m=>{c+=+m.real||0;real[m.minggu]=c});
+ const pa=w=>{let r=null;for(const k of Object.keys(plan).map(Number).sort((a,b)=>a-b)){if(k<=w)r=plan[k]}return r};
+ const ra=w=>{let r=null;for(const k of Object.keys(real).map(Number).sort((a,b)=>a-b)){if(k<=w)r=real[k]}return r};
+ const lastW=mon.length?mon[mon.length-1].minggu:null,phys=lastW?real[lastW]:null,pl=lastW?pa(lastW):null,dev=(phys!=null&&pl!=null)?phys-pl:null;
+ const kts=DB.Keuangan.filter(k=>k.projectId===p.id&&k.status!=='Batal'),paid=kts.reduce((s,k)=>s+(+k.nilai||0),0),ret=kts.reduce((s,k)=>s+(+k.retensi||0),0),kon=+p.kontrak||null;
+ let st='Belum Ada Data';
+ if(phys!=null){st=phys>=100?'Selesai':dev!=null&&dev<-CFG.LATE?'Terlambat':dev!=null&&dev<-CFG.WARN?'Perlu Perhatian':'On Track';
+  if(phys<100&&p.selesai&&new Date(p.selesai)<new Date())st='Terlambat'}
+ const lastUpd=[p.updated,...mon.map(m=>m.updated),...kts.map(k=>k.updated)].filter(Boolean).sort().pop();
+ return{plan,real,pa,ra,lastW,phys,pl,dev,paid,ret,kon,finPct:kon?paid/kon*100:null,sisa:kon!=null?kon-paid:null,st,lastUpd,nsch:sch.length,lastMon:mon.length?(mon[mon.length-1].tglAkhir||mon[mon.length-1].updated):null}}
+const cls=s=>s==='On Track'||s==='Selesai'?'On':s==='Terlambat'?'Te':s==='Perlu Perhatian'?'Pe':'Ot';
+const active=()=>DB.Proyek.filter(p=>p.arsip!=='1'&&p.arsip!==1);
+function flt(){return active().filter(p=>(!F.tahun||String(p.tahun)===F.tahun)&&(!F.kec||p.kecamatan===F.kec)&&(!F.jenis||p.jenis===F.jenis)&&(!F.sumber||p.sumber===F.sumber)).map(p=>({p,c:calc(p)})).filter(x=>(!F.status||x.c.st===F.status)&&(!F.q||(x.p.nama+x.p.lokasi+x.p.kecamatan+x.p.id).toLowerCase().includes(F.q.toLowerCase())))}
+/* Kurva S agregat: rata-rata TERBOBOT nilai kontrak; realisasi di-carry-forward per proyek, tidak dianggap 0 */
+function curve(list){
+ const L=list.filter(x=>x.c.nsch),W=Math.max(0,...L.map(x=>Math.max(...Object.keys(x.c.plan).map(Number))));
+ const maxReal=Math.max(0,...L.map(x=>x.c.lastW||0)),P=[],R=[];
+ for(let w=1;w<=W;w++){let sp=0,wp=0,sr=0,wr=0;L.forEach(x=>{const k=+x.p.kontrak||1,a=x.c.pa(w);if(a!=null){sp+=k*Math.min(a,100);wp+=k}
+  if(w<=x.c.lastW||(w<=maxReal&&x.c.lastW)){const r=x.c.ra(Math.min(w,x.c.lastW));if(r!=null){sr+=k*r;wr+=k}}});
+  P.push(wp?sp/wp:null);R.push(w<=maxReal&&wr?sr/wr:null)}
+ return{W,P,R}}
+/* ===== KOMPONEN ===== */
+function lineChart(W,series){
+ const w=640,h=250,l=36,b=24,X=i=>l+(W<2?0:i*(w-l-10)/(W-1)),Y=v=>h-b-v*(h-b-10)/100;let s=`<svg viewBox="0 0 ${w} ${h}" width="100%">`;
+ for(let g=0;g<=100;g+=25)s+=`<line x1="${l}" x2="${w-10}" y1="${Y(g)}" y2="${Y(g)}" stroke="var(--bd)"/><text x="2" y="${Y(g)+3}">${g}%</text>`;
+ for(let i=0;i<W;i++)if(W<16||i%2==0)s+=`<text x="${X(i)-6}" y="${h-8}">M${i+1}</text>`;
+ series.forEach(se=>{let d='',pen=false;se.v.forEach((v,i)=>{if(v==null){pen=false;return}d+=(pen?'L':'M')+X(i)+','+Y(v);pen=true;});
+  s+=`<path d="${d}" fill="none" stroke="${se.c}" stroke-width="2.5"/>`;se.v.forEach((v,i)=>{if(v!=null)s+=`<circle cx="${X(i)}" cy="${Y(v)}" r="3" fill="${se.c}"><title>${se.n} M${i+1}: ${v.toFixed(2)}%</title></circle>`})});
+ return s+`</svg><div class="sub"><b style="color:#d93a3a">●</b> Rencana kumulatif &nbsp; <b style="color:#1f5fd1">●</b> Realisasi kumulatif</div>`}
+const barRows=(rows,fmt)=>{const m=Math.max(1,...rows.map(r=>r[1]));return rows.map(r=>`<div style="margin:6px 0"><div class="sub">${esc(r[0])} — ${fmt(r[1])}</div><div class="bar"><i style="width:${r[1]/m*100}%"></i></div></div>`).join('')||'<div class="sub">Tidak ada data</div>'};
+const sel=(id,opts,val,cb,ph)=>`<select onchange="${cb}">${[['',ph],...opts.map(o=>[o,o])].map(o=>`<option value="${esc(o[0])}" ${o[0]==val?'selected':''}>${esc(o[1])}</option>`).join('')}</select>`;
+const card=(k,v,s)=>`<div class="card"><div class="k">${k}</div><div class="v">${v}</div>${s?`<div class="sub">${s}</div>`:''}</div>`;
+const csv=(name,rows)=>{const t=rows.map(r=>r.map(c=>'"'+String(c??'').replace(/"/g,'""')+'"').join(',')).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+t],{type:'text/csv'}));a.download=name;a.click()};
+function filters(){return `<div class="row">${sel('',[...new Set(DB.Proyek.map(p=>String(p.tahun)))],F.tahun,"F.tahun=this.value;go()",'Semua TA')}${sel('',KEC,F.kec,"F.kec=this.value;go()",'Semua Kecamatan')}${sel('',Object.keys(JENIS),F.jenis,"F.jenis=this.value;go()",'Semua Jenis')}${sel('',SUMBER,F.sumber,"F.sumber=this.value;go()",'Semua Sumber')}${sel('',['On Track','Perlu Perhatian','Terlambat','Selesai','Belum Ada Data'],F.status,"F.status=this.value;go()",'Semua Status')}<input placeholder="Cari…" value="${esc(F.q)}" oninput="F.q=this.value;clearTimeout(window._t);window._t=setTimeout(go,300)"><button class="btn g" onclick="F={tahun:'',kec:'',jenis:'',sumber:'',status:'',q:'',curve:F.curve};go()">Reset filter</button></div>`}
+/* ===== HALAMAN ===== */
+function projTable(list,extra){return `<table><tr><th>No</th><th>Nama Proyek</th><th>Kecamatan</th><th>Jenis</th><th>Nilai Kontrak</th><th>Fisik</th><th>Keuangan</th><th>Deviasi</th><th>Status</th><th>Update</th><th></th></tr>${list.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.p.nama)}</td><td>${esc(x.p.kecamatan)}</td><td>${esc(x.p.jenis)}</td><td>${rp(+x.p.kontrak)}</td><td>${pc(x.c.phys)}</td><td>${pc(x.c.finPct)}</td><td>${x.c.dev==null?'–':(x.c.dev>0?'+':'')+x.c.dev.toFixed(1)+'%'}</td><td><span class="b ${cls(x.c.st)}">${x.c.st}</span></td><td>${(x.c.lastUpd||'').slice(0,10)}</td><td><button class="btn s" onclick="detail('${x.p.id}')">Detail</button></td></tr>`).join('')||'<tr><td colspan=11>Tidak ada data</td></tr>'}</table>`}
+function pDash(){
+ const L=flt(),sum=f=>L.reduce((s,x)=>s+(f(x)||0),0),kon=sum(x=>+x.p.kontrak),paid=sum(x=>x.c.paid),ph=L.filter(x=>x.c.phys!=null),
+ avg=ph.length?ph.reduce((s,x)=>s+x.c.phys*(+x.p.kontrak||1),0)/ph.reduce((s,x)=>s+(+x.p.kontrak||1),0):null,
+ n=s=>L.filter(x=>x.c.st===s).length;
+ let sel=F.curve,cv=sel?(()=>{const x=L.find(y=>y.p.id===sel);if(!x)return curve(L);const W=Math.max(0,...Object.keys(x.c.plan).map(Number));return{W,P:[...Array(W)].map((_,i)=>x.c.pa(i+1)),R:[...Array(W)].map((_,i)=>x.c.lastW&&i+1<=x.c.lastW?x.c.ra(i+1):null)}})():curve(L);
+ const lp=[...cv.P].reverse().find(v=>v!=null),lr=[...cv.R].reverse().find(v=>v!=null);
+ return filters()+`<div class="grid">${card('Total Proyek',L.length)}${card('Total Pagu',rp(sum(x=>+x.p.pagu)))}${card('Total Nilai Kontrak',rp(kon))}${card('Rata-rata Progres Fisik',pc(avg),'terbobot nilai kontrak')}${card('Realisasi Keuangan',rp(paid))}${card('% Realisasi Keuangan',pc(kon?paid/kon*100:null),'dasar: nilai kontrak')}${card('Tepat Waktu',n('On Track')+n('Selesai'),'On Track + Selesai')}${card('Terlambat',n('Terlambat'),'Perlu perhatian: '+n('Perlu Perhatian'))}</div>
+ <div class="two"><div class="card"><h2>Kurva S — Progres Fisik Kumulatif</h2><div class="row"><select onchange="F.curve=this.value;go()"><option value="">Seluruh proyek (agregat terbobot kontrak)</option>${L.map(x=>`<option value="${x.p.id}" ${x.p.id===F.curve?'selected':''}>${esc(x.p.nama.slice(0,50))}</option>`).join('')}</select></div>${cv.W?lineChart(cv.W,[{n:'Rencana',c:'#d93a3a',v:cv.P},{n:'Realisasi',c:'#1f5fd1',v:cv.R}]):'<div class="sub">Belum ada jadwal.</div>'}
+ <div class="sub">Realisasi terakhir: <b>${pc(lr)}</b> · Target terakhir: <b>${pc(lp)}</b> · Deviasi: <b>${lr!=null&&lp!=null?(lr-lp).toFixed(1)+' poin':'–'}</b>. Minggu tanpa monitoring tidak dihitung nol.</div></div>
+ <div class="card"><h2>Ringkasan Keuangan</h2><table style="min-width:0"><tr><td>Pagu</td><td>${rp(sum(x=>+x.p.pagu))}</td></tr><tr><td>Nilai kontrak</td><td>${rp(kon)}</td></tr><tr><td>Realisasi kumulatif</td><td>${rp(paid)}</td></tr><tr><td>Sisa kontrak (kontrak − realisasi)</td><td>${rp(kon-paid)}</td></tr><tr><td>Sisa pagu (pagu − kontrak)</td><td>${rp(sum(x=>+x.p.pagu)-kon)}</td></tr><tr><td>Retensi tercatat</td><td>${rp(sum(x=>x.c.ret))}</td></tr></table></div></div>
+ <div class="card"><h2>Seluruh Proyek</h2>${projTable(L)}</div>`}
+function pProyek(){const L=flt();return filters()+`<div class="row"><button class="btn" onclick="formProyek()">+ Tambah Proyek</button></div><div class="card"><table><tr><th>ID</th><th>Nama</th><th>TA</th><th>Kec.</th><th>Lokasi</th><th>Jenis</th><th>Sumber</th><th>Pagu</th><th>Kontrak</th><th>Mulai</th><th>Selesai</th><th>Penyedia</th><th>Fisik</th><th>Keu.</th><th>Status</th><th>Aksi</th></tr>${L.map(({p,c})=>`<tr><td>${esc(p.id)}</td><td>${esc(p.nama)}</td><td>${p.tahun}</td><td>${esc(p.kecamatan)}</td><td>${esc(p.lokasi)}</td><td>${esc(p.jenis)}</td><td>${esc(p.sumber)}</td><td>${rp(+p.pagu)}</td><td>${rp(+p.kontrak)}</td><td>${p.mulai||''}</td><td>${p.selesai||''}</td><td>${esc(p.penyedia)}</td><td>${pc(c.phys)}</td><td>${pc(c.finPct)}</td><td><span class="b ${cls(c.st)}">${c.st}</span></td><td style="white-space:nowrap"><button class="btn s" onclick="detail('${p.id}')">Lihat</button> <button class="btn s g" onclick="formProyek('${p.id}')">Edit</button> <button class="btn s g" onclick="arsip('${p.id}')">Arsip</button> <button class="btn s g" onclick="hapus('${p.id}')">Hapus</button></td></tr>`).join('')}</table></div>`}
+function pMon(){
+ const L=flt(),ids=new Set(L.map(x=>x.p.id)),M=DB.Monitoring_Mingguan.filter(m=>ids.has(m.projectId)).sort((a,b)=>a.projectId<b.projectId?-1:a.minggu-b.minggu),pm=id=>DB.Proyek.find(p=>p.id===id)||{},cum={};
+ const rows=M.map(m=>{const c=calc(pm(m.projectId));const t=c.pa(m.minggu),r=c.ra(m.minggu);return{m,t,r,d:t!=null&&r!=null?r-t:null}});
+ const worst=[...L].filter(x=>x.c.dev!=null).sort((a,b)=>a.c.dev-b.c.dev).slice(0,5),stale=L.filter(x=>x.c.st!=='Selesai'&&(!x.c.lastMon||(Date.now()-new Date(x.c.lastMon))/864e5>CFG.STALE_DAYS));
+ let agg='';const cv=curve(L);if(cv.W)agg=lineChart(cv.W,[{n:'Rencana',c:'#d93a3a',v:cv.P},{n:'Realisasi',c:'#1f5fd1',v:cv.R}]);
+ return filters()+`<div class="row"><button class="btn" onclick="formMon()">+ Input Monitoring Mingguan</button></div><div class="two"><div class="card"><h2>Progres Kumulatif</h2>${agg}</div><div class="card"><h2>Deviasi Terbesar</h2>${barRows(worst.map(x=>[x.p.nama.slice(0,45),Math.abs(x.c.dev)]),v=>'−'+v.toFixed(1)+' poin')}<h2 style="margin-top:12px">Belum Diperbarui (&gt;${CFG.STALE_DAYS} hari)</h2>${stale.map(x=>`<div>• ${esc(x.p.nama)}</div>`).join('')||'<div class="sub">Semua terbarui</div>'}</div></div>
+ <div class="card"><h2>Catatan Monitoring</h2><table><tr><th>ID</th><th>Proyek</th><th>Mgu</th><th>Periode</th><th>Target kum.</th><th>Real. mingguan</th><th>Real. kum.</th><th>Deviasi</th><th>Kendala</th><th>Tindak lanjut</th><th>Catatan</th><th>Update</th><th></th></tr>${rows.map(({m,t,r,d})=>`<tr><td>${esc(m.id)}</td><td>${esc(pm(m.projectId).nama)}</td><td>${m.minggu}</td><td>${m.tglAwal||''} – ${m.tglAkhir||''}</td><td>${pc(t)}</td><td>${pc(+m.real)}</td><td>${pc(r)}</td><td>${d==null?'–':d.toFixed(1)}</td><td>${esc(m.kendala)}</td><td>${esc(m.tindak)}</td><td>${esc(m.catatan)}${m.foto?` <a href="${esc(m.foto)}" target=_blank>📷</a>`:''}</td><td>${(m.updated||'').slice(0,10)}</td><td><button class="btn s g" onclick="formMon('${m.id}')">Edit</button></td></tr>`).join('')||'<tr><td colspan=13>Belum ada data</td></tr>'}</table></div>`}
+function pSch(){
+ const L=flt();let sel=F.curve&&L.find(x=>x.p.id===F.curve),cv=sel?(()=>{const W=Math.max(0,...Object.keys(sel.c.plan).map(Number));return{W,P:[...Array(W)].map((_,i)=>sel.c.pa(i+1)),R:[...Array(W)].map((_,i)=>sel.c.lastW&&i+1<=sel.c.lastW?sel.c.ra(i+1):null)}})():curve(L);
+ const dur=p=>p.mulai&&p.selesai?Math.round((new Date(p.selesai)-new Date(p.mulai))/864e5)+' hari':'–';
+ return filters()+`<div class="row"><button class="btn" onclick="formSch()">+ Tambah Time Schedule</button></div><div class="card"><h2>Kurva S ${sel?'— '+esc(sel.p.nama):'(agregat terbobot nilai kontrak)'}</h2><div class="row"><select onchange="F.curve=this.value;go()"><option value="">Semua proyek</option>${L.map(x=>`<option value="${x.p.id}" ${x.p.id===F.curve?'selected':''}>${esc(x.p.nama.slice(0,60))}</option>`).join('')}</select></div>${cv.W?lineChart(cv.W,[{n:'Rencana',c:'#d93a3a',v:cv.P},{n:'Realisasi',c:'#1f5fd1',v:cv.R}]):'<div class="sub">Belum ada jadwal</div>'}</div>
+ <div class="card"><table><tr><th>Proyek</th><th>Lokasi</th><th>Kontrak</th><th>Mulai</th><th>Selesai</th><th>Durasi</th><th>Rencana</th><th>Realisasi</th><th>Deviasi</th><th>Status jadwal</th><th></th></tr>${L.map(({p,c})=>`<tr><td>${esc(p.nama)}</td><td>${esc(p.kecamatan)}</td><td>${rp(+p.kontrak)}</td><td>${p.mulai||''}</td><td>${p.selesai||''}</td><td>${dur(p)}</td><td>${pc(c.pl)}</td><td>${pc(c.phys)}</td><td>${c.dev==null?'–':c.dev.toFixed(1)}</td><td><span class="b ${cls(c.st)}">${c.nsch?c.st:'Jadwal belum ada'}</span></td><td><button class="btn s g" onclick="formSch('${p.id}')">Ubah jadwal</button></td></tr>`).join('')}</table></div>`}
+function pKeu(){
+ const L=flt(),kon=L.reduce((s,x)=>s+(+x.p.kontrak||0),0),paid=L.reduce((s,x)=>s+x.c.paid,0),lunas=L.filter(x=>x.c.kon&&x.c.paid>=x.c.kon).length,ids=new Set(L.map(x=>x.p.id)),T=DB.Keuangan.filter(k=>ids.has(k.projectId));
+ const perTgl={};T.filter(k=>k.status!=='Batal').forEach(k=>{const m=(k.tgl||'').slice(0,7);perTgl[m]=(perTgl[m]||0)+ +k.nilai});let cu=0;const ser=Object.keys(perTgl).sort().map(m=>[m,cu+=perTgl[m]]);
+ return filters()+`<div class="grid">${card('Total Pagu',rp(L.reduce((s,x)=>s+(+x.p.pagu||0),0)))}${card('Total Nilai Kontrak',rp(kon))}${card('Realisasi Pembayaran',rp(paid),'transaksi valid, tanpa status Batal')}${card('% Realisasi',pc(kon?paid/kon*100:null),'dibagi nilai kontrak')}${card('Sisa Kontrak',rp(kon-paid))}${card('Total Retensi',rp(L.reduce((s,x)=>s+x.c.ret,0)))}${card('Lunas',lunas)}${card('Belum Lunas',L.length-lunas)}</div>
+ <div class="row"><button class="btn" onclick="formKeu()">+ Input Realisasi Keuangan</button><button class="btn g" onclick="csv('keuangan.csv',[['ID','Proyek','Sumber','Pagu','Kontrak','Realisasi','%','Sisa','Retensi'],...flt().map(x=>[x.p.id,x.p.nama,x.p.sumber,x.p.pagu,x.p.kontrak,x.c.paid,x.c.finPct,x.c.sisa,x.c.ret])])">⬇ Ekspor CSV</button></div>
+ <div class="two"><div class="card"><h2>Realisasi Kumulatif per Bulan</h2>${barRows(ser,rp)}</div><div class="card"><h2>Peringatan Keuangan (ambang ${CFG.LOW_PAY}%)</h2>${L.filter(x=>x.c.finPct!=null&&x.c.finPct<CFG.LOW_PAY&&x.c.phys>=100).map(x=>`<div>⚠ ${esc(x.p.nama)}: fisik ${pc(x.c.phys)}, bayar ${pc(x.c.finPct)}</div>`).join('')||'<div class="sub">Tidak ada proyek yang melewati ambang (fisik 100% tetapi pembayaran di bawah ambang).</div>'}</div></div>
+ <div class="card"><h2>Per Proyek</h2><table><tr><th>ID</th><th>Proyek</th><th>Sumber</th><th>Pagu</th><th>Kontrak</th><th>Realisasi kum.</th><th>%</th><th>Sisa kontrak</th><th>Retensi</th><th>Status bayar</th><th>Update</th></tr>${L.map(({p,c})=>`<tr><td>${p.id}</td><td>${esc(p.nama)}</td><td>${p.sumber}</td><td>${rp(+p.pagu)}</td><td>${rp(+p.kontrak)}</td><td>${rp(c.paid)}</td><td>${pc(c.finPct)}</td><td>${rp(c.sisa)}</td><td>${rp(c.ret)}</td><td>${c.kon&&c.paid>=c.kon?'Lunas':c.paid?'Sebagian':'Belum bayar'}</td><td>${(c.lastUpd||'').slice(0,10)}</td></tr>`).join('')}</table></div>
+ <div class="card"><h2>Transaksi (riwayat tidak ditimpa)</h2><table><tr><th>ID</th><th>Proyek</th><th>Tgl</th><th>Ref</th><th>Nilai</th><th>Jenis</th><th>Retensi</th><th>Status</th><th>Ket</th></tr>${T.map(k=>`<tr><td>${k.id}</td><td>${esc((DB.Proyek.find(p=>p.id===k.projectId)||{}).nama)}</td><td>${(k.tgl||'').slice(0,10)}</td><td>${esc(k.ref)}</td><td>${rp(+k.nilai)}</td><td>${esc(k.jenis)}</td><td>${rp(+k.retensi||0)}</td><td>${k.status}</td><td>${esc(k.ket)}</td></tr>`).join('')}</table></div>`}
+function pPeta(){setTimeout(drawMap,0);return filters()+`<div class="row"><button class="btn" onclick="formGeo()">+ Tambah Proyek / Polyline</button><button class="btn g" onclick="map&&map.fitBounds(window._bounds||map.getBounds())">Zoom semua</button><span class="sub">${Object.entries(JENIS).map(([k,c])=>`<b style="color:${c}">●</b> ${k}`).join(' &nbsp; ')}</span></div><div class="card"><div id="map"></div></div>
+ <div class="card"><table><tr><th>Proyek</th><th>Kec.</th><th>Jenis</th><th>Panjang</th><th>Status</th><th></th></tr>${flt().map(({p,c})=>{const g=DB.Geometri_Peta.filter(x=>x.projectId===p.id);return`<tr><td>${esc(p.nama)}</td><td>${p.kecamatan}</td><td>${p.jenis}</td><td>${g.length?g.reduce((s,x)=>s+(+x.panjangKm||0),0).toFixed(2)+' km':'<i>belum ada geometri</i>'}</td><td><span class="b ${cls(c.st)}">${c.st}</span></td><td><button class="btn s g" onclick="zoomP('${p.id}')">Zoom</button></td></tr>`}).join('')}</table></div>`}
+let layers={};
+function drawMap(){
+ if(map){map.remove();map=null}const el=$('#map');if(!el)return;map=L.map(el).setView([-7.6,110.95],11);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
+ layers={};const fl=new Map(flt().map(x=>[x.p.id,x])),bs=[];
+ DB.Geometri_Peta.forEach(g=>{const x=fl.get(g.projectId);if(!x)return;let gj;try{gj=JSON.parse(g.geojson)}catch(e){return}
+  const col=JENIS[x.p.jenis]||'#555',l=L.geoJSON(gj,{style:{color:col,weight:4},pointToLayer:(f,ll)=>L.circleMarker(ll,{color:col,radius:7})}).addTo(map);
+  l.bindPopup(`<b>${esc(x.p.nama)}</b><br>${x.p.kecamatan} · ${x.p.jenis}<br>${g.panjangKm?g.panjangKm+' km<br>':''}Kontrak: ${rp(+x.p.kontrak)}<br>Fisik: ${pc(x.c.phys)} · ${x.c.st}<br><a href="#" onclick="detail('${x.p.id}');return false">Lihat detail</a>`);(layers[g.projectId]=layers[g.projectId]||[]).push(l);bs.push(l.getBounds())});
+ if(bs.length){window._bounds=bs.reduce((a,b)=>a.extend(b));map.fitBounds(window._bounds)}}
+function zoomP(id){(layers[id]||[]).length?map.fitBounds(layers[id][0].getBounds()):toast('Proyek belum punya geometri',1);scrollTo(0,0)}
+/* ===== FORM ===== */
+function form(title,fields,onOk,vals={}){
+ $('#mbox').innerHTML=`<h2>${title}</h2><div id="ff">${fields.map(f=>`<div class="f"><label>${f.l}${f.r?' *':''}</label>${f.t==='select'?`<select name="${f.n}" ${f.c?`onchange="${f.c}"`:''}>${f.o.map(o=>`<option value="${esc(Array.isArray(o)?o[0]:o)}">${esc(Array.isArray(o)?o[1]:o)}</option>`).join('')}</select>`:f.t==='textarea'?`<textarea name="${f.n}" rows="2"></textarea>`:`<input name="${f.n}" type="${f.t||'text'}" ${f.s?`step="${f.s}"`:''}>`}</div>`).join('')}</div><div class="row"><button class="btn" id="okb">Simpan</button><button class="btn g" onclick="closeM()">Batal</button></div>`;
+ $('#modal').style.display='flex';fields.forEach(f=>{const e=$('#ff [name='+f.n+']');if(vals[f.n]!=null&&e)e.value=f.t==='date'?String(vals[f.n]).slice(0,10):vals[f.n]});
+ $('#okb').onclick=async()=>{const v={};fields.forEach(f=>v[f.n]=$('#ff [name='+f.n+']').value.trim());const m=fields.find(f=>f.r&&!v[f.n]);if(m)return toast(m.l+' wajib diisi',1);
+  const b=$('#okb');b.disabled=true;b.textContent='Menyimpan…';const r=await onOk(v);b.disabled=false;b.textContent='Simpan';if(r&&r.ok){closeM();toast('Tersimpan');go()}else if(r)toast(r.error||'Gagal menyimpan',1)}}
+const closeM=()=>$('#modal').style.display='none';
+const pOpts=()=>active().map(p=>[p.id,p.nama.slice(0,70)]);
+function formProyek(id){const e=DB.Proyek.find(p=>p.id===id);
+ form(e?'Edit Proyek':'Tambah Proyek',[{n:'nama',l:'Nama proyek',r:1},{n:'tahun',l:'Tahun anggaran',t:'number',r:1},{n:'kecamatan',l:'Kecamatan',t:'select',o:KEC},{n:'lokasi',l:'Lokasi / ruas'},{n:'jenis',l:'Jenis pekerjaan',t:'select',o:Object.keys(JENIS)},{n:'sumber',l:'Sumber dana',t:'select',o:SUMBER},{n:'kontrakNo',l:'Nomor kontrak'},{n:'penyedia',l:'Penyedia'},{n:'pagu',l:'Pagu (Rp)',t:'number',r:1},{n:'kontrak',l:'Nilai kontrak (Rp)',t:'number'},{n:'mulai',l:'Tanggal mulai',t:'date'},{n:'selesai',l:'Tanggal selesai',t:'date'},{n:'ppk',l:'PPK'},{n:'pptk',l:'PPTK'},{n:'pengawas',l:'Pengawas'},{n:'ket',l:'Keterangan',t:'textarea'}],async v=>{
+  if(N(v.pagu)<0||N(v.kontrak)<0)return{error:'Nilai tidak boleh negatif'};if(v.mulai&&v.selesai&&v.selesai<v.mulai)return{error:'Tanggal selesai sebelum mulai'};
+  if(N(v.kontrak)>N(v.pagu))return{error:'Nilai kontrak melebihi pagu'};
+  return save('Proyek',{...v,id:e?e.id:uid('P'),arsip:e?e.arsip:''},e&&e.updated)},e||{tahun:new Date().getFullYear()})}
+async function arsip(id){if(!confirm('Arsipkan proyek ini? Data terkait tetap tersimpan.'))return;const r=await save('Proyek',{id,arsip:'1'});r.ok?(toast('Diarsipkan'),go()):toast(r.error,1)}
+function formMon(id){const e=DB.Monitoring_Mingguan.find(m=>m.id===id);
+ form(e?'Edit Monitoring':'Input Monitoring Mingguan',[{n:'projectId',l:'Proyek',t:'select',o:pOpts()},{n:'minggu',l:'Minggu ke',t:'number',r:1},{n:'tglAwal',l:'Tanggal awal',t:'date'},{n:'tglAkhir',l:'Tanggal akhir',t:'date'},{n:'real',l:'Realisasi fisik minggu ini (% terhadap total pekerjaan)',t:'number',s:'0.01',r:1},{n:'kendala',l:'Kendala',t:'textarea'},{n:'tindak',l:'Rencana tindak lanjut',t:'textarea'},{n:'catatan',l:'Catatan pengawas',t:'textarea'},{n:'foto',l:'URL foto (terisi otomatis bila mengunggah)'},{n:'__foto',l:'Unggah foto dokumentasi (dikompres otomatis)',t:'file'}],async v=>{
+  const w=N(v.minggu),r=N(v.real);if(!w||w<1)return{error:'Minggu tidak valid'};if(r==null||r<0)return{error:'Realisasi tidak boleh negatif/kosong'};
+  const oth=DB.Monitoring_Mingguan.filter(m=>m.projectId===v.projectId&&+m.minggu<w&&(!e||m.id!==e.id)).reduce((s,m)=>s+ +m.real,0);
+  if(oth+r>100&&!confirm('Progres kumulatif akan '+(oth+r).toFixed(2)+'% (>100%). Lanjutkan?'))return null;
+  const fi=$('#ff [name=__foto]').files[0];delete v.__foto;if(fi){const u=await upFoto(fi);if(!u.ok)return u;v.foto=u.url}
+  return save('Monitoring_Mingguan',{...v,minggu:w,real:r,id:'M-'+v.projectId+'-W'+w},e&&e.updated)},e||{})}
+function formSch(pid){
+ form('Time Schedule (bobot rencana per minggu)',[{n:'projectId',l:'Proyek',t:'select',o:pOpts()},{n:'bobot',l:'Bobot mingguan (%), pisahkan koma — total harus 100. Contoh: 5,10,15,20,20,15,10,5',r:1},{n:'ket',l:'Keterangan'}],async v=>{
+  const b=v.bobot.split(/[,;\s]+/).filter(Boolean).map(Number);if(b.some(x=>isNaN(x)||x<0))return{error:'Bobot harus angka ≥ 0'};
+  const t=b.reduce((s,x)=>s+x,0);if(Math.abs(t-100)>0.01)return{error:'Total bobot '+t.toFixed(2)+'% — harus 100%'};
+  for(let i=0;i<b.length;i++){const r=await save('Time_Schedule',{id:'S-'+v.projectId+'-W'+(i+1),projectId:v.projectId,minggu:i+1,bobot:b[i],ket:v.ket});if(!r.ok)return r}
+  const old=DB.Time_Schedule.filter(s=>s.projectId===v.projectId&&+s.minggu>b.length);for(const s of old)await save('Time_Schedule',{id:s.id,bobot:0,ket:'(diganti)'});
+  return{ok:true}},{projectId:pid||''});if(pid)$('#ff [name=projectId]').value=pid}
+function formKeu(){
+ form('Input Realisasi Keuangan',[{n:'projectId',l:'Proyek',t:'select',o:pOpts()},{n:'tgl',l:'Tanggal transaksi',t:'date',r:1},{n:'ref',l:'Nomor / referensi pembayaran'},{n:'nilai',l:'Nilai realisasi periode ini (Rp)',t:'number',r:1},{n:'jenis',l:'Jenis pembayaran',t:'select',o:['Uang Muka','Termin','Pelunasan','Koreksi']},{n:'retensi',l:'Nilai retensi (Rp)',t:'number'},{n:'status',l:'Status',t:'select',o:['Dibayar','Proses','Batal']},{n:'ket',l:'Keterangan',t:'textarea'}],async v=>{
+  const n=N(v.nilai);if(n==null||(n<0&&v.jenis!=='Koreksi'))return{error:'Nilai tidak valid'};const p=DB.Proyek.find(x=>x.id===v.projectId);
+  if(p&&N(p.kontrak)&&calc(p).paid+(v.status==='Batal'?0:n)>+p.kontrak*1.0001)return{error:'Total realisasi melebihi nilai kontrak'};
+  return save('Keuangan',{...v,nilai:n,retensi:N(v.retensi)||0,id:uid('K')})})}
+/* ===== GEOMETRI: KML/GeoJSON ===== */
+const hav=(a,b)=>{const R=6371,r=x=>x*Math.PI/180,d=r(b[1]-a[1]),e=r(b[0]-a[0]),h=Math.sin(d/2)**2+Math.cos(r(a[1]))*Math.cos(r(b[1]))*Math.sin(e/2)**2;return 2*R*Math.asin(Math.sqrt(h))};
+function lenKm(gj){let s=0;const walk=g=>{if(!g)return;if(g.type==='LineString')for(let i=1;i<g.coordinates.length;i++)s+=hav(g.coordinates[i-1],g.coordinates[i]);else if(g.type==='MultiLineString')g.coordinates.forEach(c=>walk({type:'LineString',coordinates:c}));else if(g.type==='GeometryCollection')g.geometries.forEach(walk)};
+ (gj.features||[gj]).forEach(f=>walk(f.geometry||f));return s}
+function kml2gj(t){const d=new DOMParser().parseFromString(t,'text/xml'),F=[];
+ d.querySelectorAll('Placemark').forEach(pm=>{pm.querySelectorAll('LineString coordinates, Point coordinates').forEach(c=>{const pts=c.textContent.trim().split(/\s+/).map(s=>s.split(',').map(Number)).filter(a=>a.length>=2&&!isNaN(a[0])&&!isNaN(a[1])).map(a=>[a[0],a[1]]);
+  if(pts.some(p=>p[0]<-180||p[0]>180||p[1]<-90||p[1]>90))throw new Error('Koordinat di luar rentang WGS84');
+  if(pts.length)F.push({type:'Feature',properties:{},geometry:c.parentElement.tagName==='Point'?{type:'Point',coordinates:pts[0]}:{type:'LineString',coordinates:pts}})})});
+ if(!F.length)throw new Error('Tidak ada LineString/Point pada file');return{type:'FeatureCollection',features:F}}
+function formGeo(){
+ form('Tambah Polyline ke Proyek',[{n:'projectId',l:'Proyek (buat proyek baru dulu di menu Proyek bila belum ada)',t:'select',o:pOpts()},{n:'jenis',l:'Jenis pekerjaan',t:'select',o:Object.keys(JENIS)},{n:'txt',l:'Tempel isi KML / GeoJSON (atau pilih file di bawah)',t:'textarea'},{n:'__f',l:'File .kmz / .kml / .geojson',t:'file'}],async v=>{
+  let t=v.txt,nama='tempel',fmt,orig=null;const fi=$('#ff [name=__f]').files[0];
+  try{if(fi){nama=fi.name;if(/\.kmz$/i.test(nama)){const z=await JSZip.loadAsync(fi),k=Object.keys(z.files).find(n=>/\.kml$/i.test(n));if(!k)return{error:'KMZ tidak berisi file .kml'};t=await z.files[k].async('string');fmt='KMZ'}else t=await fi.text();orig=await b64(fi)}
+   if(!t)return{error:'Isi geometri atau pilih file'};let gj;if(t.trim().startsWith('{')){gj=JSON.parse(t);fmt=fmt||'GeoJSON'}else{gj=kml2gj(t);fmt=fmt||'KML'}
+   const row={id:uid('G'),projectId:v.projectId,nama,format:fmt,tipe:(gj.features?gj.features[0].geometry:gj.geometry||gj).type,geojson:JSON.stringify(gj),jenis:v.jenis,panjangKm:+lenKm(gj).toFixed(3)};
+   if(OFF)return save('Geometri_Peta',row);
+   const r=await post({action:'saveGeo',row,orig});if(r.auth===false){SES=null;loginUI('Sesi berakhir')}if(r.ok)await load();return r
+  }catch(e){return{error:'Geometri tidak valid: '+e.message}}})}
+/* ===== DETAIL ===== */
+function detail(id){const p=DB.Proyek.find(x=>x.id===id),c=calc(p);map&&0;const W=Math.max(0,...Object.keys(c.plan).map(Number)),P=[...Array(W)].map((_,i)=>c.pa(i+1)),R=[...Array(W)].map((_,i)=>c.lastW&&i+1<=c.lastW?c.ra(i+1):null);
+ $('#mbox').innerHTML=`<h2>${esc(p.nama)}</h2><div class="sub">${p.id} · TA ${p.tahun} · ${p.kecamatan} · ${esc(p.lokasi)} · ${p.jenis} · ${p.sumber}</div><p>Penyedia: ${esc(p.penyedia)||'–'} · PPK: ${esc(p.ppk)||'–'} · PPTK: ${esc(p.pptk)||'–'} · Pengawas: ${esc(p.pengawas)||'–'}<br>Kontrak ${rp(+p.kontrak)} · Pagu ${rp(+p.pagu)} · ${p.mulai||'?'} s/d ${p.selesai||'?'}<br>Fisik ${pc(c.phys)} · Keuangan ${pc(c.finPct)} (${rp(c.paid)}) · Sisa kontrak ${rp(c.sisa)} · <span class="b ${cls(c.st)}">${c.st}</span></p>${W?lineChart(W,[{n:'Rencana',c:'#d93a3a',v:P},{n:'Realisasi',c:'#1f5fd1',v:R}]):'<div class="sub">Jadwal belum ada</div>'}<h2>Riwayat</h2>${DB.Monitoring_Mingguan.filter(m=>m.projectId===id).map(m=>`<div class="sub">M${m.minggu}: ${m.real}% — ${esc(m.kendala)||'tanpa kendala'} (${(m.updated||'').slice(0,10)})</div>`).join('')||'<div class="sub">Belum ada monitoring</div>'}<div class="row" style="margin-top:12px"><button class="btn g" onclick="closeM()">Tutup</button></div>`;$('#modal').style.display='flex'}
+/* ===== PERAN, SORTIR, PAGINATION ===== */
+const TS={};
+function enh(){
+ document.querySelectorAll('#main button').forEach(b=>{const t=b.textContent.trim();if(!/^(\+|Edit|Arsip|Ubah|Hapus)/.test(t))return;
+  const ok=ROLE==='admin'||(ROLE==='editor'&&t!=='Hapus')||(ROLE==='pengawas'&&page===2&&!/^(Hapus|Arsip)/.test(t));if(!ok)b.remove()});
+ document.querySelectorAll('#main table').forEach((t,ti)=>{
+  if(t.style.minWidth==='0px'||t.rows.length<3)return;
+  const S=TS[ti]=TS[ti]||{c:-1,d:1,p:0,n:10},all=[...t.rows],hd=all[0],rows=all.slice(1),tb=hd.parentElement;
+  const val=r=>{const x=(r.cells[S.c]?.textContent||'').trim();if(x===''||x==='–')return null;if(/^\d{4}-\d\d-\d\d/.test(x))return x;const y=x.replace(/^Rp/,'').replace(/%$/,'').replace('−','-');if(/^Rp/.test(x))return +y.replace(/\./g,'')||0;return /^[+-]?\d+(\.\d+)?$/.test(y)?+y:x.toLowerCase()};
+  if(S.c>=0)rows.sort((a,b)=>{const x=val(a),y=val(b);if(x==null)return 1;if(y==null)return -1;return(x>y?1:x<y?-1:0)*S.d});
+  rows.forEach(r=>tb.appendChild(r));const pg=Math.ceil(rows.length/S.n);S.p=Math.max(0,Math.min(S.p,pg-1));
+  rows.forEach((r,i)=>r.style.display=i>=S.p*S.n&&i<(S.p+1)*S.n?'':'none');
+  [...hd.cells].forEach((h,i)=>{h.style.cursor='pointer';h.title='Klik untuk mengurutkan';h.textContent=h.textContent.replace(/ [▲▼]$/,'')+(S.c===i?(S.d>0?' ▲':' ▼'):'');h.onclick=()=>{S.d=S.c===i?-S.d:1;S.c=i;enh()}});
+  if(t.nextElementSibling&&t.nextElementSibling.classList.contains('pgr'))t.nextElementSibling.remove();
+  if(rows.length>10){const d=document.createElement('div');d.className='row pgr';d.innerHTML=`<button class="btn s g" ${S.p?'':'disabled'}>‹</button><span class="sub">Hal ${S.p+1}/${pg} · ${rows.length} baris</span><button class="btn s g" ${S.p<pg-1?'':'disabled'}>›</button><select>${[10,25,50].map(n=>`<option ${n==S.n?'selected':''}>${n}</option>`).join('')}</select>`;
+   const c=d.children;c[0].onclick=()=>{S.p--;enh()};c[2].onclick=()=>{S.p++;enh()};c[3].onchange=e=>{S.n=+e.target.value;S.p=0;enh()};t.after(d)}})}
+/* ===== ROUTER ===== */
+function go(){
+ $('#nav').innerHTML=PAGES.map((n,i)=>`<a class="${i==page?'on':''}" onclick="page=${i};go();$('#sb').classList.remove('open')">${['📊','📁','🗓','📈','💰','🗺'][i]} ${n}</a>`).join('');$('#ttl').textContent=PAGES[page]+' · SIGAP JALAN';
+ const ys=[...new Set(DB.Proyek.map(p=>String(p.tahun)))].sort();$('#ta').innerHTML='<option value="">Semua</option>'+ys.map(y=>`<option ${y==F.tahun?'selected':''}>${y}</option>`).join('');
+ $('#sync').textContent=lastSync?'Sinkron '+lastSync.toLocaleTimeString('id-ID'):'';
+ $('#main').innerHTML=(OFF?'<div class="demo">Belum terhubung ke Google Spreadsheet (CFG.API_URL kosong). Perubahan hanya tersimpan sementara di browser.</div>':'')+[pDash,pProyek,pMon,pSch,pKeu,pPeta][page]();enh()}
+setInterval(()=>{if($('#modal').style.display!=='flex'&&!OFF&&SES)load()},CFG.POLL_MS);
+load();
+</script></body></html>
